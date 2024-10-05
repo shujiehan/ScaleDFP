@@ -1,0 +1,43 @@
+syntax="proto3";
+
+enum Status {
+  SUCCESS = 0;
+  PENDING = 1;
+  FAIL = 2;
+}
+
+message LocalSamplesRequest {
+  string name = 1;
+  int64 num_positive_samples = 2;
+  int64 num_negative_samples = 3;
+}
+
+message ReceivedReply {
+  Status status = 1;
+}
+
+message GlobalSamplesRequest {
+  string name = 1;
+}
+
+message GlobalSamplesReply {
+  Status status = 1;
+  int64 num_positive_samples = 2;
+  int64 num_negative_samples = 3;
+}
+
+message SendSamplesRequest {
+  string name = 1;
+  string filename = 2;
+  string output = 3;
+  bytes chunk = 4;
+}
+
+service UploadNumSamplesService {
+  rpc upload_local_samples (LocalSamplesRequest) returns (ReceivedReply);
+  rpc get_global_samples (GlobalSamplesRequest) returns (GlobalSamplesReply);
+}
+
+service UploadSamplesService {
+  rpc upload_samples (stream SendSamplesRequest) returns (ReceivedReply);
+}

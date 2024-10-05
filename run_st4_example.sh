@@ -1,0 +1,41 @@
+#!/bin/bash
+START_DATE="2015-01-30"
+ITER_DAYS=400
+NUM_JOBS=4
+ENSEMBLE_SIZE=30
+GRACE_PERIOD=50
+SPLIT_CONFIDENCE=1e-7
+VALIDATION_WINDOW=30
+CLASS_INDEX=1
+NUM_POISSON_WEIGHT=30
+
+PEERS=4
+
+DOWN_SAMPLE=7
+LAMBDA=6
+LAMBDA_N=1
+SEED=1
+
+TRAIN_PREFIX="/home/shujie/bb_pyloader_${PEERS}p_random0.1"
+TRAIN_PATH="${TRAIN_PREFIX}/st4_train_p30n7v30_fix_20/allocate_d${DOWN_SAMPLE}p${LAMBDA}n${LAMBDA_N}r${SEED}/"
+TEST_PATH="/home/shujie/bb_pyloader/st4_test_p30n7v30_fix_20/"
+
+CLF_NAME="meta.OzaBagAdwin"
+REPORT_DIR="st4_ba_${PEERS}p/"
+
+if [ ! -d ${REPORT_DIR} ]; then
+mkdir -p $REPORT_DIR
+fi
+
+
+RES_NAME="d${DOWN_SAMPLE}p${LAMBDA}n${LAMBDA_N}_${SEED}.txt"
+PATH_REPORT="${REPORT_DIR}${RES_NAME}"
+TIME_PATH="${REPORT_DIR}time_${RES_NAME}"
+
+CMD="java -cp simulate/target/simulate-2024.01.0-SNAPSHOT.jar:moa/target/moa-2024.01.0-SNAPSHOT.jar \
+  simulate.Simulate -s $START_DATE -i $ITER_DAYS -c $CLASS_INDEX -p $TRAIN_PATH -t $TEST_PATH \
+  -a ($CLF_NAME -a $LAMBDA -n $LAMBDA_N -s $ENSEMBLE_SIZE \
+  ) -D $DOWN_SAMPLE -V $VALIDATION_WINDOW -r $SEED -n $NUM_POISSON_WEIGHT"
+echo "$CMD > $PATH_REPORT"
+time ($CMD > $PATH_REPORT) 2>> $TIME_PATH
+

@@ -1,0 +1,4 @@
+*.pyc
+target
+*.idea
+*DS_Store
