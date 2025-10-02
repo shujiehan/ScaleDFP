@@ -2,7 +2,7 @@
 
 ScaleDFP is a general framework for scaling disk failure prediction with the number of data sources via multi-source stream mining. It is designed based on three techniques: near-data-preprocessing, random downsampling, and training data allocation. 
 
-We prototyped SCALEDFP in Python, comprising data collectors, a coordinator, and receivers with ∼550 LoC. Among different components, we implement network communications using Remote Procedure Calls (RPCs) via [gRPC](https://grpc.io/). 
+We prototyped SCALEDFP in Python, comprising data collectors, a coordinator,  receivers, and a straggler-aware scheduler with ∼1,100 LoC. Among different components, we implement network communications using Remote Procedure Calls (RPCs) via [gRPC](https://grpc.io/). 
 
 - For data collectors, we realize near-data preprocessing based on the preprocessing workflow in [StreamDFP](https://github.com/shujiehan/StreamDFP) and integrate random downsampling. After random downsampling, each data collector sends its local counts of positive and negative samples to the coordinator. 
 
@@ -10,10 +10,14 @@ We prototyped SCALEDFP in Python, comprising data collectors, a coordinator, and
 
 - Additionally, data collectors transmit training data to receivers via RPCs. Receivers ensure receipt of training data from all data collectors and sort samples by their timestamps before writing them into the local file system. Samples are read from the local file system and fed into the ensemble learning algorithms (i.e., BA and ARF). We realize the ensemble learning algorithms based on StreamDFP and replace its original Poisson sampling approach by our training data allocation approach.
 
+- For the straggler-aware scheduler, we develop its prediction model for long queuing delays using the [Scikit-learn library](https://scikit-learn.org/stable/). To improve the efficiency
+  of feature generation, we accelerate the generation of its resource utilization features using the [Cython library](https://github.com/cython/cython). When data collectors are migrated, they are serialized and deserialized along with the recent samples in the buffering
+  window.
+
 ## Prerequisite
 
 - Preprocessing:
-  - Python>=3.7
+  - Python>=3.8
   - Python library: `pip install -r requirements.txt`
   - [Random poisson library](https://github.com/shujiehan/random_poisson): refer to README.md in this library for installing
 - Training:
@@ -144,6 +148,10 @@ For more details, please refer to an example script `run_st4_example.sh`.
 The above process is used to generate the training data. 
 
 For the test data, please use `pyloader/`, which is the original data preprocessing in StreamDFP, to generate the test data. You may refer to StreamDFP to check out the usage, which is similar to ScaleDFP.
+
+### Straggler Tolerance Usage
+
+See [README](./straggler-tolerance) under `straggler-tolerance` directory.
 
 ### Contact
 
